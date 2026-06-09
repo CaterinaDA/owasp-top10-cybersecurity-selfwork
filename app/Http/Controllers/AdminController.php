@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 class AdminController extends Controller
 {
     public function dashboard()
-	{
-		return view("admin.dashboard");
-	}
+    {
+        return view("admin.dashboard");
+    }
 
     public function articles()
     {
@@ -25,29 +25,30 @@ class AdminController extends Controller
         $users = User::all();
         return view('admin.users', compact('users'));
     }
-    
-    public function toggleArticleStatus($id) {
+
+    public function toggleArticleStatus($id)
+    {
         // SECURE
-        // if(!Auth::user()->isAdmin()){
-        //     return back()->withMessage("Operation not permitted");
-        // }
-        
+        if (!Auth::user()->isAdmin()) {
+            return back()->withMessage("Operation not permitted");
+        }
+
         $article = Article::find($id);
         $article->published = !$article->published;
         $article->save();
         return back();
     }
 
-	public function toggleUsersAdmin($id)
-	{
+    public function toggleUsersAdmin($id)
+    {
         // SECURE
-        // if(!Auth::user()->isAdmin()){
-        //     return back()->withMessage("Operation not permitted");
-        // }
-        // UNSECURE
-		$user = User::find($id);
+        if (!Auth::user()->isAdmin()) {
+            return back()->withMessage("Operation not permitted");
+        }
+
+        $user = User::find($id);
         $user->is_admin = !$user->is_admin;
         $user->save();
         return back();
-	}
+    }
 }
