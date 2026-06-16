@@ -9,14 +9,15 @@ return Application::configure(basePath: dirname(__DIR__))
         App\Providers\FortifyServiceProvider::class,
     ])
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'block.suspicious' => \App\Http\Middleware\BlockSuspiciousIPs::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
