@@ -41,7 +41,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users/email/change', [UserController::class, 'changeEmail'])->name('change.email');
     Route::post('/users/img/change', [UserController::class, 'changeImg'])->name('change.img');
 
-    Route::get('/download-privacy', [UserController::class, 'download'])->name('download');
+    // UNSECURE
+    // Route::get('/download-privacy', [UserController::class, 'download'])->name('download');
+    // SECURE
+    Route::post('/upload', [UserController::class, 'upload'])->name('upload');
+    Route::get('/download/{file}', [UserController::class, 'downloadPrivateFile'])->name('download.private');
 
     // UNSECURE
     // Route::prefix('dashboard')->group(function () {

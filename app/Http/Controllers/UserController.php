@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -104,8 +105,66 @@ class UserController extends Controller
         return redirect()->back()->with('message', 'Image updated');
     }
 
-    public function download(Request $request)
+    public function upload(Request $request)
     {
-        return response()->download(storage_path('app/private/' . $request->get('filename')));
+        if (!$user = Auth::user()) {
+            return back()->with('message', 'Please Log In');
+        }
+        if (!$request->hasFile('file')) {
+            return back()->withErrors('Forbidden Operation');
+        }
+
+        // SECURE: define allowed extensions and mime types
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+        $allowedMimeTypes  = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+
+        $file      = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $mimeType  = $file->getMimeType();
+
+        if (!in_array($extension, $allowedExtensions) || !in_array($mimeType, $allowedMimeTypes)) {
+            return back()->withErrors('File type not allowed');
+        }
+
+        $filename = $file->getClientOriginalName();
+
+        // generate a unique id for the file
+        $fileUid = uniqid() . '.' . $extension;
+
+        // save the file in a private folder (storage/app/private/docs/users/{id})
+        $file->storeAs("docs/users/{$user->id}", $fileUid, 'local');
+
+        // save the record in the DB
+        File::create([
+            'name'    => $filename,
+            'uid'     => $fileUid,
+            'user_id' => $user->id
+        ]);
+
+        return back()->with('message', 'Upload successful');
+    }
+
+    // UNSECURE
+    // public function download(Request $request)
+    // {
+    //     return response()->download(storage_path('app/private/' . $request->get('filename')));
+    // }
+
+    // SECURE
+    public function downloadPrivateFile($uid)
+    {
+        $file = File::where('uid', $uid)->firstOrFail();
+
+        if ($file->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Forbidden Operation'], 403);
+        }
+
+        $path = storage_path('app/private/docs/users/' . $file->user_id . '/' . $uid);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->download($path, $file->name);
     }
 }

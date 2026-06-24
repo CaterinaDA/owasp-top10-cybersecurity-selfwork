@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Article;
+use App\Models\File;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -19,12 +20,14 @@ class User extends Authenticatable
      */
 
     // UNSECURE
-    protected $guarded = [];
+    // protected $guarded = [];
 
     // SECURE
-    // protected $fillable = [
-    //     'name','email','password'
-    // ];
+    protected $fillable = [
+        'name',
+        'email',
+        'password'
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -46,11 +49,18 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function isAdmin(){
-        return $this->is_admin==1 ? true : false;
+    public function isAdmin()
+    {
+        return $this->is_admin == 1 ? true : false;
     }
 
-    public function articles(){
+    public function articles()
+    {
         return $this->hasMany(Article::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(File::class);
     }
 }
