@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Article;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -48,6 +49,9 @@ class AdminController extends Controller
 
         $user = User::find($id);
         $user->is_admin = !$user->is_admin;
+
+        Log::info("User $user->email has been " . ($user->is_admin ? "promoted" : "demoted") . " to admin at " . now() . " from " . request()->ip() . " by " . Auth::user()->id);
+
         $user->save();
         return back();
     }

@@ -5,26 +5,41 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 class BlockSuspiciousIPs
 {
+    protected int $maxAttempts = 3;
+    protected int $decayMinutes = 1;
+    protected int $blockMinutes = 5;
+
     public function handle(Request $request, Closure $next): Response
     {
         $ip = $request->ip();
         $key = 'comments_flood_' . $ip;
-        $maxAttempts = 3;
-        $decayMinutes = 1;
 
-        $attempts = Cache::get($key, 0);
-
-        if ($attempts >= $maxAttempts) {
-            return response()->json([
-                'message' => 'Too many comments. Please wait before trying again.'
-            ], 429);
+        if (Cache::has($key . ':blocked')) {
+            Session::flash('errors', "Your IP has been blocked for $this->blockMinutes minute(s) due to suspicious activity.");
+            return redirect()->back();
         }
 
-        Cache::put($key, $attempts + 1, now()->addMinutes($decayMinutes));
+        if (Cache::has($key)) {
+            $attempts = Cache::increment($key);
+
+            if ($attempts > $this->maxAttempts) {
+                Cache::put($key . ':blocked', true, $this->blockMinutes * 60);
+
+                Log::warning("IP $ip has been blocked for $this->blockMinutes minute(s) due to too many requests.");
+
+                Session::flash('errors', "Your IP has been blocked for $this->blockMinutes minute(s) due to suspicious activity.");
+
+                return redirect()->back();
+            }
+        } else {
+            Cache::put($key, 1, $this->decayMinutes * 60);
+        }
 
         return $next($request);
     }
