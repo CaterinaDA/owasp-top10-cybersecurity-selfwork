@@ -9,6 +9,7 @@
     <title>{{ config('app.name') }} - {{ $title ?? '' }}</title>
     @vite(['resources/css/app.css'])
     {{ $style ?? '' }}
+    @livewireStyles
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -40,6 +41,7 @@
 
     @vite(['resources/js/app.js'])
     {{ $scripts ?? '' }}
+    @livewireScripts
 </body>
 
 </html>

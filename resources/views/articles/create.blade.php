@@ -33,6 +33,10 @@
             </div>
         </div>
     </div>
+
+    {{-- SSRF Mitigation --}}
+    @livewire('article-image-preview')
+
     <x-slot:scripts>
         <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"
             integrity="sha384-hcxmSutM10NL6iGBAA0LStIhy+kWJxfrhqWVMRuABZH5Vqztexq2nBz/Xnfllly9" crossorigin="anonymous">
