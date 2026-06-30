@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\HtmlFilterService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ArticleController extends Controller
 {
@@ -64,34 +65,36 @@ class ArticleController extends Controller
         return view('articles.create');
     }
 
-    public function store(Request $request/*,HtmlFilterService $htmlFilterService*/)
+    public function store(Request $request)
     {
-        // UNSECURE
-        $articleData = $request->all();
-
         // SECURE
-        //$articleData['content'] = $htmlFilterService->filterHtml($articleData['content']);
+        $validatedData = $request->validate([
+            'title'     => 'required|string|max:255',
+            'content'   => 'required|string',
+            'published' => 'sometimes|boolean',
+        ]);
 
-        if (!key_exists('user_id', $articleData)) {
-            $articleData['user_id'] = Auth::id();
-        }
+        $validatedData['user_id'] = Auth::id();
 
-        $article = Article::create($articleData);
+        $article = Article::create($validatedData);
 
         if ($request->wantsJson()) {
             return response()->json($article, 201);
         }
-
         return redirect()->route('articles.index');
     }
 
     public function edit(Article $article)
     {
+        Gate::authorize('update', $article);
+
         return view('articles.edit', compact('article'));
     }
 
     public function update(Request $request, Article $article/*,HtmlFilterService $htmlFilterService*/)
     {
+        Gate::authorize('update', $article);
+
         // UNSECURE
         $articleData = $request->all();
 
@@ -109,6 +112,8 @@ class ArticleController extends Controller
 
     public function destroy(Article $article, Request $request)
     {
+        Gate::authorize('delete', $article);
+
         // SECURE
         // if(Auth::id() !== $article->user_id){
         //     return redirect()->route('articles.show', $article)->with('message','Not authorized');

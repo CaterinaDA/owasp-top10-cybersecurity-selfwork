@@ -31,12 +31,21 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user = User::find($id);
+        if (Auth::id() !== (int) $id) {
+            return response()->json(['message' => 'Forbidden Operation'], 403);
+        }
 
-        $user->update($request->all());
+        $user = User::findOrFail($id);
 
+        $validatedData = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+        ]);
+
+        $user->update($validatedData);
         return back()->with('message', 'User updated');
     }
+
     public function changeEmail(Request $request)
     {
 

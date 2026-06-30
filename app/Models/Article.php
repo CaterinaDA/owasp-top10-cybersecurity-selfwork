@@ -12,14 +12,19 @@ class Article extends Model
 {
     use HasFactory;
 
-    protected $guarded =[];
+    // UNSECURE
+    // protected $guarded =[];
 
-    public function user(){
+    // SECURE
+    protected $fillable = ['title', 'content', 'published', 'user_id'];
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class)->orderBy("created_at","desc");
+        return $this->hasMany(Comment::class)->orderBy("created_at", "desc");
     }
 }
